@@ -3,13 +3,11 @@
 // collects results, and returns a unified report. Truly multi-agent.
 const AGENTS = {
   backoffice: { url: 'http://localhost:8092/api/run', kind: 'run' },
-  mfp: { url: 'http://localhost:8093/api/diagnose', kind: 'diagnose' },
   hospital: { url: 'http://localhost:8094/api/intake', kind: 'intake' },
 };
 
 function classify(text) {
   const t = (text || '').toLowerCase();
-  if (t.includes('プリンタ') || t.includes('複合機') || t.includes('トナー') || t.includes('紙詰まり') || t.includes('mfp') || t.includes('printer')) return 'mfp';
   if (t.includes('受付') || t.includes('予約') || t.includes('待ち') || t.includes('列') || t.includes('患者') || t.includes('hospital') || t.includes('queue') || t.includes('受診') || t.includes('混雑') || t.includes('待合')) return 'hospital';
   return 'backoffice'; // default: general back-office
 }
@@ -34,8 +32,7 @@ async function callAgent(which, payload) {
 
 async function orchestrate(request) {
   const target = classify(request);
-  const payload = target === 'mfp' ? { symptom: request }
-    : target === 'hospital' ? { patient: request, channel: 'message' }
+  const payload = target === 'hospital' ? { patient: request, channel: 'message' }
     : { task: request };
   const steps = [
     { step: 'think', result: `(思考) ルーティング: ${target} エージェントへ委任` },
