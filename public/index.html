@@ -54,7 +54,7 @@ function App(){
     <div>
       <header><div className="wrap" style={{padding:0}}>
         <h1>🎯 Manager Orchestrator</h1>
-        <p>1つの指示を3つの専門エージェント（バックオフィス・MFP・病院）に自動振り分け</p>
+        <p>1つの指示を専門エージェント（バックオフィス・病院）に自動振り分け</p>
         <span className="badge">マルチエージェント</span><span className="badge">自動ルーティング</span>
       </div></header>
       <div className="wrap">
@@ -71,7 +71,6 @@ function App(){
         <div className="card"><h3 style={{marginTop:0}}>配下エージェント</h3>
           <div className="agents">
             <div className="a"><b>Back-Office</b><br/>:8092 タスク処理</div>
-            <div className="a"><b>MFP Support</b><br/>:8093 故障診断</div>
             <div className="a"><b>Hospital</b><br/>:8094 受付・混雑</div>
           </div>
         </div>
