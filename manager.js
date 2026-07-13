@@ -10,7 +10,7 @@ const AGENTS = {
 function classify(text) {
   const t = (text || '').toLowerCase();
   if (t.includes('プリンタ') || t.includes('複合機') || t.includes('トナー') || t.includes('紙詰まり') || t.includes('mfp') || t.includes('printer')) return 'mfp';
-  if (t.includes('受付') || t.includes('予約') || t.includes('待ち') || t.includes('列') || t.includes('患者') || t.includes('hospital') || t.includes('queue') || t.includes('受診')) return 'hospital';
+  if (t.includes('受付') || t.includes('予約') || t.includes('待ち') || t.includes('列') || t.includes('患者') || t.includes('hospital') || t.includes('queue') || t.includes('受診') || t.includes('混雑') || t.includes('待合')) return 'hospital';
   return 'backoffice'; // default: general back-office
 }
 
