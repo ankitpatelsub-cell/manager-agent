@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { orchestrate } = require('./manager');
 const { limited } = require('./ratelimit');
+const dash = require('./dashauth');
+try { const ep = path.join(__dirname, '.env'); if (fs.existsSync(ep)) for (const line of fs.readFileSync(ep, 'utf8').split('\n')) { const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, ''); } } catch {}
 
 const PUBLIC = path.join(__dirname, 'public');
 const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json' };
@@ -24,7 +26,15 @@ const server = http.createServer(async (req, res) => {
     const r = await orchestrate(reqText);
     return send(res, 200, r);
   }
+  if (req.method === 'POST' && url.pathname === '/api/dash-login') {
+    const b = await body();
+    if (dash.checkPass(b.password)) return send(res, 200, { token: dash.makeToken() });
+    return send(res, 401, { error: 'unauthorized' });
+  }
   let p = url.pathname === '/' ? '/index.html' : url.pathname;
+  if (p === '/index.html' && !dash.checkToken(req.headers['x-auth-token'] || (req.headers['cookie'] || '').match(/dash=([^;]+)/)?.[1] || '')) {
+    return send(res, 200, dash.LOGIN_HTML, 'text/html');
+  }
   const fp = path.join(PUBLIC, p);
   if (fs.existsSync(fp) && fs.statSync(fp).isFile()) return send(res, 200, fs.readFileSync(fp), MIME[path.extname(fp)] || 'text/plain');
   return send(res, 404, { error: 'not found' });
