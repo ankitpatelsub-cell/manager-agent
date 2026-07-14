@@ -31,6 +31,9 @@ const server = http.createServer(async (req, res) => {
     if (dash.checkPass(b.password)) return send(res, 200, { token: dash.makeToken() });
     return send(res, 401, { error: 'unauthorized' });
   }
+  if (req.method === 'GET' && url.pathname === '/api/overview') {
+    return send(res, 200, { runs: 0, note: 'orchestrator — routes to specialists' });
+  }
   let p = url.pathname === '/' ? '/index.html' : url.pathname;
   if (p === '/index.html' && !dash.checkToken(req.headers['x-auth-token'] || (req.headers['cookie'] || '').match(/dash=([^;]+)/)?.[1] || '')) {
     return send(res, 200, dash.LOGIN_HTML, 'text/html');
