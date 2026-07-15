@@ -32,10 +32,12 @@ function keywordFallback(text) {
 async function classify(text) {
   const t = (text || '').trim();
   if (!t) return 'backoffice';
+  const provider = (process.env.MODEL_PROVIDER || 'auto').toLowerCase();
   // 1) Keyword fallback FIRST — reliable, free, instant (authoritative when matched)
   const kw = keywordFallback(text);
   if (kw) return kw;
-  // 2) OpenRouter LLM
+  // 2) OpenRouter LLM (only if provider allows and key+model set)
+  if (provider === 'openrouter' || (provider === 'auto' && process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_MODEL)) {
   try {
     const sys = `You are a router for a multi-agent system. Pick the BEST agent for the request.
 Return ONLY one word from: hospital, hotel, car, reels, backoffice, manager.
@@ -51,6 +53,7 @@ Return ONLY one word from: hospital, hotel, car, reels, backoffice, manager.
       for (const a of Object.keys(AGENTS)) if (w.includes(a)) return a;
     }
   } catch { /* fall through */ }
+  } // end OpenRouter provider block
   // 3) Local Claude CLI (free, authenticated) — used when OpenRouter credits exhausted
   if (claudeTask) {
     try {
