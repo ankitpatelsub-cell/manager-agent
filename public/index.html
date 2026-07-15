@@ -41,6 +41,11 @@ function App(){
   const [trace,setTrace]=useState([]);
   const [target,setTarget]=useState('');
   const [busy,setBusy]=useState(false);
+  const [settings,setSettings]=useState({provider:'claude',openrouter_model:'',claude_cli:true,openrouter_key:'missing'});
+  const [orModel,setOrModel]=useState('');
+  async function loadSettings(){ try{ const s=await fetch('/api/settings').then(r=>r.json()); setSettings(s); setOrModel(s.openrouter_model||''); }catch{} }
+  async function applyProvider(p, model){ const body={provider:p}; if(model)body.openrouter_model=model; try{ const s=await fetch('/api/set-provider',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()); setSettings(s); }catch{} }
+  useEffect(()=>{loadSettings();},[]);
   const ex=['トナーが薄い複合機を確認して','患者の受付をQRで行って','今月のチケットを要約してメール送信','プリンターがオフラインです','待合せが混雑しているので通知して'];
   async function run(r){ if(!r.trim())return; setBusy(true); setTrace([]); setTarget('');
     try{
@@ -72,6 +77,22 @@ function App(){
           <div className="agents">
             <div className="a"><b>Back-Office</b><br/>:8092 タスク処理</div>
             <div className="a"><b>Hospital</b><br/>:8094 受付・混雑</div>
+          </div>
+        </div>
+        <div className="card">
+          <h3 style={{marginTop:0}}>🧠 Model Settings <span style={{fontWeight:400,fontSize:11,color:'#5b6b7d'}}>（live switch）</span></h3>
+          <div className="examples" style={{marginTop:6}}>
+            <span className={"chip"+(settings.provider==='claude'?' chip-on':'')} style={(settings.provider==='claude')?{background:'#7a4fd0',color:'#fff'}:{}} onClick={()=>applyProvider('claude')}>Claude (free)</span>
+            <span className={"chip"+(settings.provider==='auto'?' chip-on':'')} style={(settings.provider==='auto')?{background:'#7a4fd0',color:'#fff'}:{}} onClick={()=>applyProvider('auto')}>Auto (failover)</span>
+            <span className={"chip"+(settings.provider==='openrouter'?' chip-on':'')} style={(settings.provider==='openrouter')?{background:'#7a4fd0',color:'#fff'}:{}} onClick={()=>applyProvider('openrouter',orModel)}>OpenRouter</span>
+          </div>
+          <div style={{marginTop:10,display:'flex',gap:8,alignItems:'center'}}>
+            <input className="chip" style={{border:'1px solid #d6e2f5',flex:1,padding:8}} placeholder="OpenRouter model (e.g. anthropic/claude-sonnet-4)" value={orModel} onChange={e=>setOrModel(e.target.value)} />
+            <button className="go" style={{marginTop:0,padding:'8px 14px',fontSize:13}} onClick={()=>applyProvider(settings.provider,orModel)}>Save</button>
+          </div>
+          <div style={{fontSize:11,color:'#5b6b7d',marginTop:8}}>
+            Claude CLI: {settings.claude_cli?'✅ available':'❌'} · OpenRouter key: {settings.openrouter_key==='set'?'✅ set':'⚠️ missing'} {settings.openrouter_model&&<>· model: <code>{settings.openrouter_model}</code></>}
+            <br/>Auto mode fails over Claude↔OpenRouter on token/rate-limit.
           </div>
         </div>
       </div>
